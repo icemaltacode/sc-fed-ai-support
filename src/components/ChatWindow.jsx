@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import MessageBubble from "./MessageBubble";
 import { createAvatar } from "@dicebear/core";
-import { adventurer, bottts } from '@dicebear/collection';
+import { adventurer, bottts } from "@dicebear/collection";
 
 const Container = styled.div`
   position: fixed;
@@ -12,7 +12,7 @@ const Container = styled.div`
   max-height: 500px;
   background: #1e1e2f;
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -61,33 +61,6 @@ const Button = styled.button`
   cursor: pointer;
 `;
 
-const getAvatar = async (seed) => {
-  if (seed === "ai") {
-    const avatar = createAvatar(bottts, { seed: "Riley" });
-    return "data:image/svg+xml;utf8," + encodeURIComponent(avatar.toString());
-  }
-
-  const avatar = createAvatar(adventurer, {
-    seed: seed + Math.random().toString(36).substring(2, 8),
-    size: 32,
-    radius: 8
-  });
-  return "data:image/svg+xml;utf8," + encodeURIComponent(avatar.toString());
-};
-
-function ChatWindow({ userName }) {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const chatRef = useRef(null);
-
-  const [aiAvatar, setAiAvatar] = useState("");
-  const [userAvatar, setUserAvatar] = useState("");
-  const [suggestions, setSuggestions] = useState([
-    "What does RoboClean Duo do?",
-    "How long does the RoboClean Mini battery last?",
-    "Which model is best for pet hair?",
-    "Can the RoboClean Ultra map my rooms?"
-  ]);
 const SuggestionButton = styled.button`
   padding: 6px 10px;
   border: 1px solid #5b5fef;
@@ -120,6 +93,34 @@ const SuggestionButton = styled.button`
   }
 `;
 
+const getAvatar = async (seed) => {
+  if (seed === "ai") {
+    const avatar = createAvatar(bottts, { seed: "Riley" });
+    return "data:image/svg+xml;utf8," + encodeURIComponent(avatar.toString());
+  }
+
+  const avatar = createAvatar(adventurer, {
+    seed: seed + Math.random().toString(36).substring(2, 8),
+    size: 32,
+    radius: 8,
+  });
+  return "data:image/svg+xml;utf8," + encodeURIComponent(avatar.toString());
+};
+
+function ChatWindow({ userName }) {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const chatRef = useRef(null);
+
+  const [aiAvatar, setAiAvatar] = useState("");
+  const [userAvatar, setUserAvatar] = useState("");
+  const [suggestions, setSuggestions] = useState([
+    "What does RoboClean Duo do?",
+    "How long does the RoboClean Mini battery last?",
+    "Which model is best for pet hair?",
+    "Can the RoboClean Ultra map my rooms?",
+  ]);
+
   useEffect(() => {
     getAvatar("ai").then(setAiAvatar);
     getAvatar(userName).then(setUserAvatar);
@@ -133,7 +134,7 @@ const SuggestionButton = styled.button`
     if (suggestions.length > 0 && chatRef.current) {
       chatRef.current.scrollTo({
         top: chatRef.current.scrollHeight,
-        behavior: "smooth"
+        behavior: "smooth",
       });
     }
   }, [suggestions]);
@@ -159,9 +160,9 @@ const SuggestionButton = styled.button`
       const response = await fetch("http://localhost:3000/chat", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ messages: openaiMessages })
+        body: JSON.stringify({ messages: openaiMessages }),
       });
 
       if (!response.ok || !response.body) throw new Error("Network error");
@@ -176,7 +177,9 @@ const SuggestionButton = styled.button`
 
         buffer += decoder.decode(value, { stream: true });
 
-        const parts = buffer.split("\n\n").filter((line) => line.trim().startsWith("data: "));
+        const parts = buffer
+          .split("\n\n")
+          .filter((line) => line.trim().startsWith("data: "));
         for (let part of parts) {
           const json = JSON.parse(part.replace("data: ", ""));
           const text = json.text || "";
@@ -196,20 +199,24 @@ const SuggestionButton = styled.button`
         const suggestionRes = await fetch("http://localhost:3000/suggestions", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             messages: [
               { role: "system", content: "You are a helpful assistant." },
-              ...[...messages, userMsg, {
-                role: "assistant",
-                content: aiMsg.text
-              }].map((msg) => ({
+              ...[
+                ...messages,
+                userMsg,
+                {
+                  role: "assistant",
+                  content: aiMsg.text,
+                },
+              ].map((msg) => ({
                 role: msg.isUser ? "user" : msg.role || "assistant",
-                content: msg.text || msg.content
-              }))
-            ]
-          })
+                content: msg.text || msg.content,
+              })),
+            ],
+          }),
         });
 
         if (suggestionRes.ok) {
@@ -223,7 +230,6 @@ const SuggestionButton = styled.button`
         console.error("Suggestion fetch error:", err);
         setSuggestions([]);
       }
-
     } catch (error) {
       console.error("Streaming error:", error);
       setMessages((prev) => {
@@ -246,29 +252,36 @@ const SuggestionButton = styled.button`
     <Container>
       <Header>Chat with AI</Header>
       <ChatArea ref={chatRef}>
-        <div style={{ textAlign: "center", color: "#888", fontSize: "12px", marginBottom: "8px" }}>
+        <div
+          style={{
+            textAlign: "center",
+            color: "#888",
+            fontSize: "12px",
+            marginBottom: "8px",
+          }}
+        >
           You are chatting with an AI. AI can make mistakes.
         </div>
         {messages.map((msg, index) => (
-          <React.Fragment key={index}>
-            <MessageBubble {...msg} />
-            {index === messages.length - 1 && !msg.isUser && suggestions.length > 0 && (
-              <div style={{ display: "flex", flexWrap: "wrap", margin: "12px 0 0" }}>
-                {suggestions.map((text, i) => (
-                  <SuggestionButton
-                    key={i}
-                    onClick={() => {
-                      sendMessageToAI(text);
-                      setSuggestions([]);
-                    }}
-                  >
-                    {text}
-                  </SuggestionButton>
-                ))}
-              </div>
-            )}
-          </React.Fragment>
+          <MessageBubble key={index} {...msg} />
         ))}
+        {suggestions.length > 0 && (
+          <div
+            style={{ display: "flex", flexWrap: "wrap", margin: "12px 0 0" }}
+          >
+            {suggestions.map((text, i) => (
+              <SuggestionButton
+                key={i}
+                onClick={() => {
+                  sendMessageToAI(text);
+                  setSuggestions([]);
+                }}
+              >
+                {text}
+              </SuggestionButton>
+            ))}
+          </div>
+        )}
       </ChatArea>
       <InputArea onSubmit={handleSubmit}>
         <Input
