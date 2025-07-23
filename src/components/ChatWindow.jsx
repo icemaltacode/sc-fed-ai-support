@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import MessageBubble from "./MessageBubble";
 import { createAvatar } from "@dicebear/core";
-import { adventurerNeutral, bottts } from '@dicebear/collection';
+import { adventurer, bottts } from '@dicebear/collection';
 
 const Container = styled.div`
   position: fixed;
@@ -67,11 +67,10 @@ const getAvatar = async (seed) => {
     return "data:image/svg+xml;utf8," + encodeURIComponent(avatar.toString());
   }
 
-  const avatar = createAvatar(adventurerNeutral, {
-    seed,
+  const avatar = createAvatar(adventurer, {
+    seed: seed + Math.random().toString(36).substring(2, 8),
     size: 32,
-    radius: 8,
-    backgroundColor: ["b6e3f4", "c0aede", "d1d4f9"],
+    radius: 8
   });
   return "data:image/svg+xml;utf8," + encodeURIComponent(avatar.toString());
 };
